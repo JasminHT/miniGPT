@@ -17,7 +17,6 @@ chat.history = []
 chat.stream = function (prompt) {
 
   chat.body.stream = true 
-  chat.body.messages = [ { role: "user", content: prompt} ]
   chat.result = ''
   chat.controller = new AbortController();
   const signal = chat.controller.signal
@@ -69,30 +68,35 @@ chat.stream = function (prompt) {
         }
 
         if (chat.json.choices) {
-          chat.result += (chat.json.choices[0].delta.content||'') 
+          let delta = chat.json.choices[0].delta.content||''
+          chat.result += (delta) 
         }	 
       }
-
+      
       chat.onmessage(chat.result)
       return reader.read().then(processText);
-       
+      
     } )
     
-  } ).catch( error => chat.onerror(error) );
+  } )
+  )
+  .catch( error => chat.onerror(error) );
   
 }
     
 // send prompt to openai API (not used in vanilla-chatGPT)
-chat.send = function (prompt) {
-  
+chat.send = async function (prompt) {
+ 
   chat.body.stream = false 
   chat.body.messages = [ { role: "user", content: prompt} ]
-  chat.headers = { "Authorization": `Bearer ${chat.apiKey}`, "Content-Type": "application/json" }
   chat.result = ''
   chat.controller = new AbortController();
   const signal = chat.controller.signal
    
-  fetch( chat.endPoint, { method:'POST', headers: chat.headers, body: JSON.stringify(chat.body), signal } )
+  fetch( "GPTproxy.php", 
+          { method:'POST', 
+            body: JSON.stringify(chat.body), 
+            signal } )
   .then(response => response.json() )
   .then(json => {
      if ((chat.json = json).choices) {
