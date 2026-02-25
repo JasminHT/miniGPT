@@ -93,21 +93,22 @@ chat.onmessage = function (text) {
 
 // show whole conversation when message completed
 chat.oncomplete = (text) => {
-  let html1='', html2=''
+  let chat_html='', log_html=''
   chat("message").innerHTML = `(model: ${chat.model})`
   chat.history.push( { prompt: chat.prompt, result: chat.result } )
   
   for (let i=0; i<chat.history.length; i++) {
-     html1 += '<h4 class=prompt id=prompt'+i+' ondblclick="chat.clipboard('+i+')" title="doubleclick to copy">' 
-     html1 += chat.history[i].prompt + '</h4>\n' + chat.history[i].result + '\n\n'
-     html2 += '<li onclick="location=this.title" title="#prompt' + i + '">' + chat.history[i].prompt
+     chat_html += '<h4 class=prompt id=prompt'+i+' ondblclick="chat.clipboard('+i+')" title="doubleclick to copy">' 
+     chat_html += chat.history[i].prompt + '</h4>\n' + chat.history[i].result + '\n\n'
+     
+     log_html += '<li onclick="location=this.title" title="#prompt' + i + '">' + chat.history[i].prompt
   }
   
-  html1 += '<div><button style="float:left" onclick="chat.redo()">Redo</button>'
-  html1 += '<button style="float:right" onclick="chat.speak()">🔊 speak</button>'
+  chat_html += '<div><button style="float:left" onclick="chat.redo()">Redo</button>'
+  chat_html += '<button style="float:right" onclick="chat.speak()">🔊 speak</button>'
   
-  chat("main").innerHTML = md.html(html1) + '<br></div>'
-  chat("list").innerHTML = html2
+  chat("main").innerHTML = md.html(chat_html) + '<br></div>'
+  chat("list").innerHTML = log_html
   chat("left").scrollTop = chat("left").scrollHeight;
   chat("btnSend").innerHTML = '<b>S</b>end'
   chat('prompt').value = ''
