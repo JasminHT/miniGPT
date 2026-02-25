@@ -1,6 +1,6 @@
 <?php
 
-include('/home1/hyperact/miniGPT/config.php');
+include('config.php');
 
 // Get the parameters from the request
 $api_url  = "https://api.openai.com/v1/chat/completions";
