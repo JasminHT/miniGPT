@@ -21,13 +21,24 @@ chat.stream = function (prompt) {
   chat.result = ''
   chat.controller = new AbortController();
   const signal = chat.controller.signal
-   
+
+  //last message: prompt
+  chat.body.messages = [ { role: "user", content: prompt} ]
+
+  //middle messages: conversation
   for (let i=chat.history.length-1; i>=0&&i>(chat.history.length-3); i--) {
     chat.body.messages.unshift( { role:'assistant', content: chat.history[i].result } );
     chat.body.messages.unshift( { role:'user', content: chat.history[i].prompt } );
   }
-  
-  fetch( "GPTproxy.php", 
+
+  //first message: instructions
+  //read the file EMMA.
+  fetch("http://localhost/miniGPT/data/EMMA.txt")
+  .then((res) => res.text())
+  .then((text) => {
+    chat.body.messages.unshift({role:'system', content:text})
+   })
+  .then(() => fetch( "GPTproxy.php", 
           { method:'POST', 
             body: JSON.stringify(chat.body), 
             signal } )
