@@ -27,12 +27,11 @@ chat.stream = function (prompt) {
     chat.body.messages.unshift( { role:'user', content: chat.history[i].prompt } );
   }
 
-  chat.sendMessageWithSystemPrompt()
-  
+  chat.sendMessage()
 }
 
 
-chat.sendMessageWithSystemPrompt = async function() {
+chat.sendMessage = async function() {
 
   chat.body.stream = true 
   chat.result = ''
@@ -95,7 +94,6 @@ chat.processStream = async function(reader) {
     chat.onmessage(chat.result);
   }
 }
-    
 
 
 // default error handle
