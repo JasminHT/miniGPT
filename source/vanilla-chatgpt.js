@@ -1,4 +1,4 @@
-﻿/*****************************************************************************
+/*****************************************************************************
 * vanilla-chatgpt.js - chat library for openai-chatgpt
 * last updated on 2023/03/28, v0.60, basic chat, responsive, print-friendly, export.
 *
@@ -15,7 +15,7 @@ chat.model = "gpt-3.5-turbo"
 chat.body  = { model: chat.model, temperature: 0.8 }
 chat.history = []
 
-// stream result from openai
+// stream result from openai using Conversations API
 chat.prepMessage = async function (prompt) {
 
   //last message: user prompt
@@ -33,17 +33,20 @@ chat.prepMessage = async function (prompt) {
   chat.body.messages.unshift({role: 'system', content: EMMA});
 }
 
+//stream result from openai using Responses API
 chat.prepMessageGPT5 = async function (prompt) {
   
-  chat.body.model = "gpt-5-nano"
+  chat.body.model = "gpt-3.5-turbo"
   chat.body.input = [ ]
+
+  //last message: user prompt
   chat.body.input.unshift(
     { role: "user", content: [ {"type": "input_text", "text": prompt} ] } 
   )
 
   //middle messages: previous conversation
   for (let i=chat.history.length-1; i>=0&&i>(chat.history.length-3); i--) {
-    chat.body.input.unshift( { role:'assistant', content: [ {"type": "input_text","text": chat.history[i].result }]});
+    chat.body.input.unshift( { role:'assistant', content: [ {"type": "output_text","text": chat.history[i].result }]});
     chat.body.input.unshift( { role:'user', content: [ { "type": "input_text", "text": chat.history[i].prompt }]});
   }
 
@@ -51,7 +54,6 @@ chat.prepMessageGPT5 = async function (prompt) {
   const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
   const EMMA = await response.text();
   chat.body.instructions = EMMA;
-
 
 }
 
@@ -63,7 +65,7 @@ chat.stream = async function(prompt) {
   chat.controller = new AbortController();
   const signal = chat.controller.signal
 
-  await chat.prepMessage(prompt)
+  await chat.prepMessageGPT5(prompt)
 
   try {
 
@@ -90,34 +92,65 @@ chat.stream = async function(prompt) {
 }
 
 chat.processStream = async function(reader) {
+  
+  let buffer = "";
+
   while (true) {
     const { done, value } = await reader.read();
 
-    if (done) return chat.oncomplete(chat.result);
-    
-    const lines = (chat.value=value).split('\n');
+    if (done) return;
+    //if (done) return chat.oncomplete(chat.result);
 
-    for (let i in lines) {
-      if (lines[i].length === 0) continue;     // ignore empty message
-      if (lines[i].startsWith(':')) continue;  // ignore comment message
-      if (lines[i] === 'data: [DONE]') return chat.oncomplete(chat.result); // end of message    
+    // Split complete SSE messages
+    buffer += value;
+    const parts = buffer.split("\n\n");
+    buffer = parts.pop(); // last part may be incomplete, so skip it for now
 
-      try {//not all tokens received are properly-formatted strings, just ignore the errors
-        chat.json = JSON.parse(lines[i].substring(6));
-      } catch {
-        chat.json = "";
+    //split the message into individual events
+    for (const part of parts) {
+      if (!part.trim()) continue;
+
+      const lines = part.split("\n");
+
+      let event = null;
+      let data = null;
+
+      for (const line of lines) {
+        if (line.startsWith("event:")) {
+          event = line.slice(6).trim();
+        } else if (line.startsWith("data:")) {
+          data = line.slice(5).trim();
+        }
       }
-      
-      if (chat.json.choices) {
-        let delta = chat.json.choices[0].delta.content || '';
-        chat.result += delta;
-      }
+
+      if (!data || data === "[DONE]") continue;
+
+      const json = JSON.parse(data);
+
+      chat.handleResponseEvent(event, json);
+
+
     }
-    
-    chat.onmessage(chat.result);
   }
 }
 
+
+chat.handleResponseEvent = function(event, json) {
+  switch (event) {
+    case "response.output_text.delta":
+      chat.result += json.delta;
+      chat.onmessage(chat.result);
+      break;
+
+    case "response.completed":
+      chat.oncomplete(chat.result);
+      break;
+
+    case "response.error":
+      console.error(json);
+      break;
+  }
+}
 
 // default error handle
 chat.onerror = (error) => { alert(error);  };
