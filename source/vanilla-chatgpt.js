@@ -16,7 +16,7 @@ chat.body  = { model: chat.model, temperature: 0.8 }
 chat.history = []
 
 // stream result from openai
-chat.stream = function (prompt) {
+chat.stream = async function (prompt) {
 
   //last message: user prompt
   chat.body.messages = [ { role: "user", content: prompt} ]
@@ -26,6 +26,11 @@ chat.stream = function (prompt) {
     chat.body.messages.unshift( { role:'assistant', content: chat.history[i].result } );
     chat.body.messages.unshift( { role:'user', content: chat.history[i].prompt } );
   }
+
+  // first message: load the system prompt
+  const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
+  const systemText = await response.text();
+  chat.body.messages.unshift({role: 'system', content: systemText});
 
   chat.sendMessage()
 }
@@ -39,11 +44,7 @@ chat.sendMessage = async function() {
   const signal = chat.controller.signal
 
   try {
-    // Step 1: Load the system prompt
-    const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
-    const systemText = await response.text();
-    chat.body.messages.unshift({role: 'system', content: systemText});
-    
+
     // Step 2: Send request to GPT proxy
     const gptResponse = await fetch("GPTproxy.php", {
       method: 'POST',
