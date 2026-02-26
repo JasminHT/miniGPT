@@ -94,7 +94,6 @@ chat.onmessage = function (text) {
 // show whole conversation when message completed
 chat.oncomplete = (text) => {
   let chat_html='', log_html=''
-  chat("message").innerHTML = `(model: ${chat.model})`
   chat.history.push( { prompt: chat.prompt, result: chat.result } )
   
   for (let i=0; i<chat.history.length; i++) {
