@@ -67,26 +67,20 @@ chat.sendMessageWithSystemPrompt = async function() {
   }
 }
 
-
 chat.processStream = async function(reader) {
   while (true) {
     const { done, value } = await reader.read();
-    if (done) {
-      chat.oncomplete(chat.result);
-      break;
-    }
+
+    if (done) return chat.oncomplete(chat.result);
     
-    const lines = (chat.value = value).split('\n');
-    
+    const lines = (chat.value=value).split('\n');
+
     for (let i in lines) {
-      if (lines[i].length === 0) continue;
-      if (lines[i].startsWith(':')) continue;
-      if (lines[i] === 'data: [DONE]') {
-        chat.oncomplete(chat.result);
-        return;
-      }
-      
-      try {
+      if (lines[i].length === 0) continue;     // ignore empty message
+      if (lines[i].startsWith(':')) continue;  // ignore comment message
+      if (lines[i] === 'data: [DONE]') return chat.oncomplete(chat.result); // end of message    
+
+      try {//not all tokens received are properly-formatted strings, just ignore the errors
         chat.json = JSON.parse(lines[i].substring(6));
       } catch {
         chat.json = "";
