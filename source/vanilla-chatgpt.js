@@ -9,6 +9,8 @@
 const chat = (id) => window.document.getElementById(id);
 
 // Set the API endpoint URL
+//chat.model = "gpt-5-mini"
+//chat.model = "gpt-5-nano"
 chat.model = "gpt-3.5-turbo"
 chat.body  = { model: chat.model, temperature: 0.8 }
 chat.history = []
