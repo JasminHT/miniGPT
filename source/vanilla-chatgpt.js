@@ -102,29 +102,7 @@ chat.processStream = async function(reader) {
   }
 }
     
-// send prompt to openai API (not used in vanilla-chatGPT)
-chat.send = async function (prompt) {
- 
-  chat.body.stream = false 
-  chat.body.messages = [ { role: "user", content: prompt} ]
-  chat.result = ''
-  chat.controller = new AbortController();
-  const signal = chat.controller.signal
-   
-  fetch( "GPTproxy.php", 
-          { method:'POST', 
-            body: JSON.stringify(chat.body), 
-            signal } )
-  .then(response => response.json() )
-  .then(json => {
-     if ((chat.json = json).choices) {
-        chat.result = json.choices[0].message.content
-        chat.onmessage(chat.result)
-        chat.oncomplete(chat.result)
-     }	 
-  })
-  .catch(error => console.error(error));
-}
+
 
 // default error handle
 chat.onerror = (error) => { alert(error);  };
