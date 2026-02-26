@@ -20,7 +20,7 @@ $body = file_get_contents('php://input');
 $ch = curl_init();
 
 curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://api.openai.com/v1/chat/completions',
+    CURLOPT_URL => 'https://api.openai.com/v1/responses',           //uncomment for models 5 and more
     CURLOPT_RETURNTRANSFER => false,
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $body,
