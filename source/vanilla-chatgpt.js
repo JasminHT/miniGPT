@@ -18,72 +18,88 @@ chat.history = []
 // stream result from openai
 chat.stream = function (prompt) {
 
-  chat.body.stream = true 
-  chat.result = ''
-  chat.controller = new AbortController();
-  const signal = chat.controller.signal
-
-  //last message: prompt
+  //last message: user prompt
   chat.body.messages = [ { role: "user", content: prompt} ]
 
-  //middle messages: conversation
+  //middle messages: previous conversation
   for (let i=chat.history.length-1; i>=0&&i>(chat.history.length-3); i--) {
     chat.body.messages.unshift( { role:'assistant', content: chat.history[i].result } );
     chat.body.messages.unshift( { role:'user', content: chat.history[i].prompt } );
   }
 
-  //first message: instructions
-  //read the file EMMA.
-  fetch("http://localhost/miniGPT/data/EMMA.txt")
-  .then((res) => res.text())
-  .then((text) => {
-    chat.body.messages.unshift({role:'system', content:text})
-   })
-  .then(() => fetch( "GPTproxy.php", 
-          { method:'POST', 
-            body: JSON.stringify(chat.body), 
-            signal } )
-  .then( response => { 
+  chat.sendMessageWithSystemPrompt()
   
-    if (!response.ok) {
-        if (response.status == 401) throw new Error('401 Unauthorized, invalide API Key');
-        throw new Error('failed to get data, error status '+response.status)
+}
+
+
+chat.sendMessageWithSystemPrompt = async function() {
+
+  chat.body.stream = true 
+  chat.result = ''
+  chat.controller = new AbortController();
+  const signal = chat.controller.signal
+
+  try {
+    // Step 1: Load the system prompt
+    const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
+    const systemText = await response.text();
+    chat.body.messages.unshift({role: 'system', content: systemText});
+    
+    // Step 2: Send to GPT proxy
+    const gptResponse = await fetch("GPTproxy.php", {
+      method: 'POST',
+      body: JSON.stringify(chat.body),
+      signal
+    });
+    
+    // Step 3: Check for errors
+    if (!gptResponse.ok) {
+      if (gptResponse.status == 401) throw new Error('401 Unauthorized, invalid API Key');
+      throw new Error('failed to get data, error status ' + gptResponse.status);
     }
     
-    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    // Step 4: Handle the stream
+    const reader = gptResponse.body.pipeThrough(new TextDecoderStream()).getReader();
+    await chat.processStream(reader);
     
-    reader.read().then( function processText({ done, value }) {
+  } catch (error) {
+    chat.onerror(error);
+  }
+}
+
+
+chat.processStream = async function(reader) {
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) {
+      chat.oncomplete(chat.result);
+      break;
+    }
     
-      if (done) return chat.oncomplete(chat.result);
-      
-      const lines = (chat.value=value).split('\n');
-
-      for (let i in lines) {
-        if (lines[i].length === 0) continue;     // ignore empty message
-        if (lines[i].startsWith(':')) continue;  // ignore comment message
-        if (lines[i] === 'data: [DONE]') return chat.oncomplete(chat.result); // end of message
-        
-        try { //not all tokens received are properly-formatted strings, just ignore the errors
-          chat.json = JSON.parse(lines[i].substring(6));
-        } catch {
-          chat.json = "";
-        }
-
-        if (chat.json.choices) {
-          let delta = chat.json.choices[0].delta.content||''
-          chat.result += (delta) 
-        }	 
+    const lines = (chat.value = value).split('\n');
+    
+    for (let i in lines) {
+      if (lines[i].length === 0) continue;
+      if (lines[i].startsWith(':')) continue;
+      if (lines[i] === 'data: [DONE]') {
+        chat.oncomplete(chat.result);
+        return;
       }
       
-      chat.onmessage(chat.result)
-      return reader.read().then(processText);
+      try {
+        chat.json = JSON.parse(lines[i].substring(6));
+      } catch {
+        chat.json = "";
+      }
       
-    } )
+      if (chat.json.choices) {
+        let delta = chat.json.choices[0].delta.content || '';
+        chat.result += delta;
+      }
+    }
     
-  } )
-  )
-  .catch( error => chat.onerror(error) );
-  
+    chat.onmessage(chat.result);
+  }
 }
     
 // send prompt to openai API (not used in vanilla-chatGPT)
