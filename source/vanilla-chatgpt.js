@@ -1,4 +1,4 @@
-/*****************************************************************************
+﻿/***************************************************************************
 * vanilla-chatgpt.js - chat library for openai-chatgpt
 * last updated on 2023/03/28, v0.60, basic chat, responsive, print-friendly, export.
 *
@@ -9,10 +9,8 @@
 const chat = (id) => window.document.getElementById(id);
 
 // Set the API endpoint URL
-//chat.model = "gpt-5-mini"
-//chat.model = "gpt-5-nano"
 chat.model = "gpt-3.5-turbo"
-chat.body  = { model: chat.model, temperature: 0.8 }
+chat.body  = { model: chat.model }
 chat.history = []
 
 // stream result from openai using Conversations API
@@ -36,7 +34,7 @@ chat.prepMessage = async function (prompt) {
 //stream result from openai using Responses API
 chat.prepMessageGPT5 = async function (prompt) {
   
-  chat.body.model = "gpt-3.5-turbo"
+  chat.body.model = "gpt-5-nano"
   chat.body.input = [ ]
 
   //last message: user prompt
