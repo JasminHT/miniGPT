@@ -16,7 +16,7 @@ chat.body  = { model: chat.model, temperature: 0.8 }
 chat.history = []
 
 // stream result from openai
-chat.stream = async function (prompt) {
+chat.prepMessage = async function (prompt) {
 
   //last message: user prompt
   chat.body.messages = [ { role: "user", content: prompt} ]
@@ -29,19 +29,41 @@ chat.stream = async function (prompt) {
 
   // first message: load the system prompt
   const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
-  const systemText = await response.text();
-  chat.body.messages.unshift({role: 'system', content: systemText});
+  const EMMA = await response.text();
+  chat.body.messages.unshift({role: 'system', content: EMMA});
+}
 
-  chat.sendMessage()
+chat.prepMessageGPT5 = async function (prompt) {
+  
+  chat.body.model = "gpt-5-nano"
+  chat.body.input = [ ]
+  chat.body.input.unshift(
+    { role: "user", content: [ {"type": "input_text", "text": prompt} ] } 
+  )
+
+  //middle messages: previous conversation
+  for (let i=chat.history.length-1; i>=0&&i>(chat.history.length-3); i--) {
+    chat.body.input.unshift( { role:'assistant', content: [ {"type": "input_text","text": chat.history[i].result }]});
+    chat.body.input.unshift( { role:'user', content: [ { "type": "input_text", "text": chat.history[i].prompt }]});
+  }
+
+  // first message: load the system prompt
+  const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
+  const EMMA = await response.text();
+  chat.body.instructions = EMMA;
+
+
 }
 
 
-chat.sendMessage = async function() {
+chat.stream = async function(prompt) {
 
   chat.body.stream = true 
   chat.result = ''
   chat.controller = new AbortController();
   const signal = chat.controller.signal
+
+  await chat.prepMessage(prompt)
 
   try {
 
