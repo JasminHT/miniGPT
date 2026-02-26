@@ -13,6 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit();
 }
 
+//receive input to forward
 $body = file_get_contents('php://input');
 
 // Initialize streaming cURL
