@@ -45,7 +45,7 @@ chat.sendMessageWithSystemPrompt = async function() {
     const systemText = await response.text();
     chat.body.messages.unshift({role: 'system', content: systemText});
     
-    // Step 2: Send to GPT proxy
+    // Step 2: Send request to GPT proxy
     const gptResponse = await fetch("GPTproxy.php", {
       method: 'POST',
       body: JSON.stringify(chat.body),
@@ -58,7 +58,7 @@ chat.sendMessageWithSystemPrompt = async function() {
       throw new Error('failed to get data, error status ' + gptResponse.status);
     }
     
-    // Step 4: Handle the stream
+    // Step 4: Display the response
     const reader = gptResponse.body.pipeThrough(new TextDecoderStream()).getReader();
     await chat.processStream(reader);
     
