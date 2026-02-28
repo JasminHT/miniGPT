@@ -49,7 +49,7 @@ chat.prepMessageGPT5 = async function (prompt) {
   }
 
   // first message: load the system prompt
-  const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
+  const response = await fetch("/miniGPT/data/EMMA.txt");
   const EMMA = await response.text();
   chat.body.instructions = EMMA;
 
