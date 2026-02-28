@@ -34,7 +34,7 @@ chat.prepMessage = async function (prompt) {
 //stream result from openai using Responses API
 chat.prepMessageGPT5 = async function (prompt) {
   
-  chat.body.model = "gpt-5-nano"
+  chat.body.model = "gpt-5"
   chat.body.input = [ ]
 
   //last message: user prompt
