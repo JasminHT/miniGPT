@@ -14,7 +14,7 @@ chat.body  = { model: chat.model }
 chat.history = []
 
 // stream result from openai using Conversations API
-chat.prepMessage = async function (prompt) {
+chat.prepMessageGpt3 = async function (prompt) {
 
   //last message: user prompt
   chat.body.messages = [ { role: "user", content: prompt} ]
@@ -32,7 +32,7 @@ chat.prepMessage = async function (prompt) {
 }
 
 //stream result from openai using Responses API
-chat.prepMessageGPT5 = async function (prompt) {
+chat.prepMessage = async function (prompt) {
   
   chat.body.model = "gpt-5"
   chat.body.input = [ ]
@@ -63,7 +63,7 @@ chat.stream = async function(prompt) {
   chat.controller = new AbortController();
   const signal = chat.controller.signal
 
-  await chat.prepMessageGPT5(prompt)
+  await chat.prepMessage(prompt)
 
   try {
 
