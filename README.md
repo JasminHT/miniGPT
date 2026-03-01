@@ -43,8 +43,8 @@ and further customization.
 
 * `chat.stream(prompt)` submit prompt in stream mode.
 * `chat.send(prompt)` submit prompt in normal mode.
-* `chat.onmessage(text)` will be triggered when message received.
-* `chat.oncomplete(text)` will be triggered when message completed.
+* `chat.onMessage(text)` will be triggered when message received.
+* `chat.onComplete(text)` will be triggered when message completed.
 * `chat.controller.abort()` to abort fetch() process 
 * `chat.export()` to export conversation to markdown file
 * `chat.history[]` keep the conversation history

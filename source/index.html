@@ -86,13 +86,13 @@ textarea { display:block; width:96%; margin:3px auto; background:#eee}
 * https://github.com/casualwriter/vanilla-chatgpt
 *****************************************************************************/
 // display result when receiving message
-chat.onmessage = function (text) {
+chat.onMessage = function (text) {
   chat("message").innerHTML = 'receiving messages..'
   chat("receiving").innerHTML = md.html(text + '<br><br>');
 }
 
 // show whole conversation when message completed
-chat.oncomplete = (text) => {
+chat.onComplete = (text) => {
   let chat_html='', log_html=''
   chat.history.push( { prompt: chat.prompt, result: chat.result } )
   
@@ -156,7 +156,7 @@ chat.clipboard = (i) => {
 }
 
 // prompt for API key if not found in localStorage
-window.onload = () => {
+window.onLoad = () => {
   /*chat.apiKey = localStorage.getItem('OPENAI_API_KEY');
   if (!chat.apiKey || chat.apiKey.length < 10 ) {
      chat.apiKey = prompt("Please input Secret API key (will store in local.storage)", "sk-");

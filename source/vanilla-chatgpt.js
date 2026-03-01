@@ -63,29 +63,29 @@ chat.stream = async function(prompt) {
   chat.controller = new AbortController();
   const signal = chat.controller.signal
 
-  await chat.prepMessage(prompt)
-
   try {
 
-    // Step 2: Send request to GPT proxy
+    await chat.prepMessage(prompt)
+
+    // Step 1: Send request to GPT proxy
     const gptResponse = await fetch("GPTproxy.php", {
       method: 'POST',
       body: JSON.stringify(chat.body),
       signal
     });
     
-    // Step 3: Check for errors
+    // Step 2: Check for errors
     if (!gptResponse.ok) {
       if (gptResponse.status == 401) throw new Error('401 Unauthorized, invalid API Key');
       throw new Error('failed to get data, error status ' + gptResponse.status);
     }
     
-    // Step 4: Display the response
+    // Step 3: Display the response
     const reader = gptResponse.body.pipeThrough(new TextDecoderStream()).getReader();
     await chat.processStream(reader);
     
   } catch (error) {
-    chat.onerror(error);
+    chat.onError(error);
   }
 }
 
@@ -97,14 +97,14 @@ chat.processStream = async function(reader) {
     const { done, value } = await reader.read();
 
     if (done) return;
-    //if (done) return chat.oncomplete(chat.result);
+    //if (done) return chat.onComplete(chat.result);
 
-    // Split complete SSE messages
+    // We capture complete parts and put the last (incomplete) part back in the buffer
     buffer += value;
     const parts = buffer.split("\n\n");
-    buffer = parts.pop(); // last part may be incomplete, so skip it for now
+    buffer = parts.pop(); 
 
-    //split the message into individual events
+    //process each part into lines
     for (const part of parts) {
       if (!part.trim()) continue;
 
@@ -123,9 +123,7 @@ chat.processStream = async function(reader) {
 
       if (!data || data === "[DONE]") continue;
 
-      const json = JSON.parse(data);
-
-      chat.handleResponseEvent(event, json);
+      chat.onResponse(event, JSON.parse(data));
 
 
     }
@@ -133,25 +131,25 @@ chat.processStream = async function(reader) {
 }
 
 
-chat.handleResponseEvent = function(event, json) {
+chat.onResponse = function(event, data) {
   switch (event) {
     case "response.output_text.delta":
-      chat.result += json.delta;
-      chat.onmessage(chat.result);
+      chat.result += data.delta;
+      chat.onMessage(chat.result);
       break;
 
     case "response.completed":
-      chat.oncomplete(chat.result);
+      chat.onComplete(chat.result);
       break;
 
     case "response.error":
-      console.error(json);
+      console.error(data);
       break;
   }
 }
 
 // default error handle
-chat.onerror = (error) => { alert(error);  };
+chat.onError = (error) => { alert(error);  };
 
 // clear API key when logout
 chat.logout = () => { 
