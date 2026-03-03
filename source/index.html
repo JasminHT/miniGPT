@@ -89,6 +89,7 @@ textarea { display:block; width:96%; margin:3px auto; background:#eee}
 chat.onMessage = function (text) {
   chat("message").innerHTML = 'receiving messages..'
   chat("receiving").innerHTML = md.html(text + '<br><br>');
+  chat('prompt').scrollIntoView();
 }
 
 // show whole conversation when message completed
@@ -109,14 +110,13 @@ chat.onComplete = (text) => {
   chat("main").innerHTML = md.html(chat_html) + '<br></div>'
   chat("list").innerHTML = log_html
   chat("left").scrollTop = chat("left").scrollHeight;
-  chat("btnSend").innerHTML = '<b>S</b>end'
+  chat("btnSend").innerHTML = 'Send'
   chat('prompt').value = ''
 
-  if (document.body.clientWidth > 800) {
-    chat('prompt').select()
-    chat('prompt').focus();
-  }
-
+  //keep view at the bottom
+  chat('prompt').select()
+  chat('prompt').focus();
+  chat('prompt').scrollIntoView();
 }
 
 // abort fetch request.
