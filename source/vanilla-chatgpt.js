@@ -9,34 +9,14 @@
 const chat = (id) => window.document.getElementById(id);
 
 // Set the API endpoint URL
-chat.model = "gpt-3.5-turbo"
+chat.model = "gpt-5.2"
 chat.body  = { model: chat.model }
 chat.history = []
-
-// stream result from openai using Conversations API
-chat.prepMessageGpt3 = async function (prompt) {
-
-  //last message: user prompt
-  chat.body.messages = [ { role: "user", content: prompt} ]
-
-  //middle messages: previous conversation
-  for (let i=chat.history.length-1; i>=0&&i>(chat.history.length-3); i--) {
-    chat.body.messages.unshift( { role:'assistant', content: chat.history[i].result } );
-    chat.body.messages.unshift( { role:'user', content: chat.history[i].prompt } );
-  }
-
-  // first message: load the system prompt
-  const response = await fetch("/miniGPT/data/EMMA.txt");
-  const EMMA = await response.text();
-  chat.body.instructions = EMMA
-
-}
 
 //stream result from openai using Responses API
 chat.prepMessage = async function (prompt) {
   
-  chat.body.model = "gpt-5"
-  chat.body.input = [ ]
+  chat.body.input = []
 
   //last message: user prompt
   chat.body.input.unshift(
@@ -81,9 +61,9 @@ chat.stream = async function(prompt) {
       throw new Error('failed to get data, error status ' + gptResponse.status);
     }
     
-    // Step 3: Display the response
+    // Step 3: Stream the response
     const reader = gptResponse.body.pipeThrough(new TextDecoderStream()).getReader();
-    await chat.processStream(reader);
+    chat.processStream(reader);
     
   } catch (error) {
     chat.onError(error);
