@@ -26,10 +26,10 @@ chat.prepMessageGpt3 = async function (prompt) {
   }
 
   // first message: load the system prompt
-  //const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
-  //const EMMA = await response.text();
-  //chat.body.messages.unshift({role: 'system', content: EMMA});
-  chat.body.messages.unshift({role: 'system', content: "Respond in short answers, 3 or 4 sentences maximum. Try to respond quickly, if possible"});
+  const response = await fetch("/miniGPT/data/EMMA.txt");
+  const EMMA = await response.text();
+  chat.body.instructions = EMMA
+
 }
 
 //stream result from openai using Responses API
@@ -50,10 +50,10 @@ chat.prepMessage = async function (prompt) {
   }
 
   // first message: load the system prompt
-  //const response = await fetch("http://localhost/miniGPT/data/EMMA.txt");
-  //const EMMA = await response.text();
-  //chat.body.messages.unshift({role: 'system', content: EMMA});
-  chat.body.messages.unshift({role: 'system', content: "Respond in short answers, 3 or 4 sentences maximum. Try to respond quickly, if possible"});
+  const response = await fetch("/miniGPT/data/EMMA.txt");
+  const EMMA = await response.text();
+  chat.body.instructions = EMMA
+
 }
 
 
