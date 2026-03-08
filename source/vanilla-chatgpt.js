@@ -9,8 +9,7 @@
 const chat = (id) => window.document.getElementById(id);
 
 // Set the API endpoint URL
-chat.model = "gpt-5.2"
-chat.body  = { model: chat.model }
+chat.body = {}
 chat.history = []
 
 //stream result from openai using Responses API
@@ -29,6 +28,7 @@ chat.prepMessage = async function (prompt) {
     chat.body.input.unshift( { role:'user', content: [ { "type": "input_text", "text": chat.history[i].prompt }]});
   }
 
+  chat.body.brain = "EMMA";
 }
 
 
