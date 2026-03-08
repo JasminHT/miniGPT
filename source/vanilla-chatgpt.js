@@ -29,11 +29,6 @@ chat.prepMessage = async function (prompt) {
     chat.body.input.unshift( { role:'user', content: [ { "type": "input_text", "text": chat.history[i].prompt }]});
   }
 
-  // first message: load the system prompt
-  const response = await fetch("/miniGPT/data/EMMA.txt");
-  const EMMA = await response.text();
-  chat.body.instructions = EMMA
-
 }
 
 
