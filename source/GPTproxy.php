@@ -15,12 +15,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 //receive input to forward
 $input = file_get_contents('php://input');
-
-//read EMMA text and add it to the body
-$emma = file_get_contents('../data/EMMA.txt');
-
 $json = json_decode($input, true);
-$json['instructions'] = $emma;
+
+//direct style
+//$emma = file_get_contents('../data/EMMA.txt');
+//$json['instructions'] = $emma;
+
+//indirect style
+$brain = $json['brain'];
+$instructions = file_get_contents('../data/EMMA.txt');
+$json['instructions'] = $instructions;
+unset($json['brain']); //need to remove brain from the request
+
+//encode input to json
+$json['model'] = "gpt-5.2";
 $body = json_encode($json);
 
 // Initialize streaming cURL
