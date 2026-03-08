@@ -155,13 +155,7 @@ chat.clipboard = (i) => {
   chat("message").innerText = 'dialogue has been copied to clipboard'
 }
 
-// prompt for API key if not found in localStorage
 window.onLoad = () => {
-  /*chat.apiKey = localStorage.getItem('OPENAI_API_KEY');
-  if (!chat.apiKey || chat.apiKey.length < 10 ) {
-     chat.apiKey = prompt("Please input Secret API key (will store in local.storage)", "sk-");
-     localStorage.setItem('OPENAI_API_KEY', chat.apiKey)
-  }*/
   chat.prompts = chat('list').innerHTML
   chat.showPrompts()
   chat('prompt').focus();
@@ -176,7 +170,6 @@ document.addEventListener('keydown', function(event) {
   }  
 });
 
-// [20230412] redo. submit latest prompt
 chat.redo = () => {
   chat.history.pop()
   chat('prompt').value = chat.prompt
