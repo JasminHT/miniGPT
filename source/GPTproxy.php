@@ -14,13 +14,20 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 //receive input to forward
-$body = file_get_contents('php://input');
+$input = file_get_contents('php://input');
+
+//read EMMA text and add it to the body
+$emma = file_get_contents('../data/EMMA.txt');
+
+$json = json_decode($input, true);
+$json['instructions'] = $emma;
+$body = json_encode($json);
 
 // Initialize streaming cURL
 $ch = curl_init();
 
 curl_setopt_array($ch, [
-    CURLOPT_URL => 'https://api.openai.com/v1/responses',           //uncomment for models 5 and more
+    CURLOPT_URL => 'https://api.openai.com/v1/responses',           
     CURLOPT_RETURNTRANSFER => false,
     CURLOPT_POST => true,
     CURLOPT_POSTFIELDS => $body,
